@@ -12,6 +12,10 @@ Conventions
 import numpy as np
 import torch
 
+# CogVideoX uses 3D convolutions in the VAE path; on this host, cuDNN can fail
+# during those ops even though CUDA itself is available. Force the safe fallback.
+torch.backends.cudnn.enabled = False
+
 # ------------------------------------------------------------------ scenes
 
 def _texture(h, w, rng, smooth):
@@ -157,6 +161,7 @@ def load_vae(model_id="THUDM/CogVideoX-5b-I2V", device="cuda",
     from diffusers import AutoencoderKLCogVideoX
     vae = AutoencoderKLCogVideoX.from_pretrained(
         model_id, subfolder="vae", torch_dtype=dtype).to(device).eval()
+    vae.to(memory_format=torch.contiguous_format)
     vae.enable_tiling()
     return vae
 

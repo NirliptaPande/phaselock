@@ -85,6 +85,8 @@ def guided_run(pipe, image, prompt, noise, m_prior=None, lam0=0.05,
 
     def cb(p, i, t, kw):
         z = kw["latents"]
+        if i == 0:
+            print(f"[cb] latents shape = {tuple(z.shape)}  (need frames on dim 1: [1, 13, 16, 60, 90])")
         if m_prior is not None and lam0 > 0 and k_start <= i < k_end:
             lam = lam0 * (1 - (i - k_start) / (k_end - k_start))
             mp = m_prior.to(z.device, z.dtype)
@@ -118,6 +120,8 @@ def main():
     ap.add_argument("--lam0", type=float, default=0.05)
     ap.add_argument("--d", type=int, default=2)
     ap.add_argument("--quick", action="store_true")
+    image = (Image.open(args.image).convert("RGB").resize((W, H))
+         if args.image else Image.fromarray(render_scene(F=1, H=H, W=W, seed=0)[0]))
     args = ap.parse_args()
 
     image = Image.fromarray(render_scene(F=1, H=H, W=W, seed=0)[0])
